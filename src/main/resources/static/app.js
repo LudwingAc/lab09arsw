@@ -1,6 +1,7 @@
 var stompClient = null;
 var x=0;
 var y=0;
+var canvas=null;
 
 
 function connect() {
@@ -19,12 +20,17 @@ function connect() {
         });
     });
 }
-function sendPoint() {
+ sendPoint= function() {
 
-    stompClient.send("/topic/newpoint", {}, JSON.stringify({x: 10, y: 10}));
+    stompClient.send("/topic/newpoint", {}, JSON.stringify({x: x, y: y}));
 }
 function callBack(theObject){
-    alert("Posx"+theObject["x"]+"Posy"+theObject["y"]);
+    var c = document.getElementById("myCanvas");
+    var ctx = c.getContext("2d");
+    ctx.beginPath();
+    ctx.arc(theObject["x"],theObject["y"],1,0,2*Math.PI);
+    ctx.stroke();
+    //alert("Posx"+theObject["x"]+"Posy"+theObject["y"]);
 }
 function disconnect() {
     if (stompClient != null) {
@@ -34,11 +40,29 @@ function disconnect() {
     console.log("Disconnected");
 }
 
+function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left,
+          y: evt.clientY - rect.top
+        };
+      }
+      
+
 
 $(document).ready(
         function () {
             connect();
             console.info('connecting to websockets');
-
+            canvas = document.getElementById('myCanvas');
+            context = canvas.getContext('2d');
+            
+            canvas.addEventListener('mousedown', function(evt) {
+            var mousePos = getMousePos(canvas, evt);
+            x=mousePos.x;
+            y=mousePos.y;
+            sendPoint();
+            var mensaje = 'Position'+ mousePos.x + mousePos.y;
+            }, false);
         }
 );
